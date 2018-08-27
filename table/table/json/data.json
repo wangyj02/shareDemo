@@ -1,0 +1,15 @@
+{
+    "Data": [{
+        "UpdataTime": "2018/8/17 16:03:00",
+        "PollutantNo": "23",
+        "Value": "0.277"
+    }, {
+        "UpdataTime": "2018/8/17 16:03:00",
+        "PollutantNo": "24",
+        "Value": "24.250"
+    }, {
+        "UpdataTime": "2018/8/17 16:03:00",
+        "PollutantNo": "25",
+        "Value": "38.250"
+    }]
+}

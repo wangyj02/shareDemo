@@ -1,0 +1,14 @@
+dist
+node_modules
+
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+
+###  MAC OS FINDER ###
+.DS_Store
+*/.DS_Store
