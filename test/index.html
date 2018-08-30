@@ -51,6 +51,9 @@
             setChart() {
               var series = this.formatchart();
               myChart.setOption({ // 调用此方法，异步更新折线图数据
+                legend: {
+                  data: series.map((item)=>item.name)
+                },
                 series: series
               });
               // this.chartlist.push(this.formatchart())

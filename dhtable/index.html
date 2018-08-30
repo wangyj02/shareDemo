@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+
+    <link rel="stylesheet" href="css/bootstrap.css">
+   <link  rel="stylesheet" href="css/bootstrap-table.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-table.js"></script>
+    <title></title>
+    <style>
+        .table-content {
+            width: 80%;
+            padding-top: 30px;
+            margin: 0 auto;
+        }
+
+        .table-content table td {
+            text-align: center;
+        }
+
+    </style>
+</head>
+
+<body>
+<div id="app">
+    <div class="table-content">
+        <table class="table table-bordered table-striped" data-toggle="table"  data-pagination="true"   id="tableTest1">
+
+        </table>
+    </div>
+</div>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                monthdata: []
+            };
+        },
+        mounted() {
+            this.getMonthData();
+            this.getPollutant();
+            this.drawTable();
+        },
+        methods: {
+            formatTable() {
+                this.pollutantdata.map(pollItem => {
+                    this.monthdata.map(monthItem => {
+                        var options = [];
+                        options.columns = [[], []];
+                        options.columns[0].push({
+                            //第一列自定义index
+                            title: "#", //标题  可不加
+                            rowspan: 2,
+                            formatter: function(value, row, index) {
+                                // return index + 1;
+                            }
+                        });
+                        options.columns[0].push({
+                            //第二列时间段
+                            field: "GainTime",
+                            title: "时间段", //标题  可不加
+                            rowspan: 2,
+                            formatter: function(value, row, index) {
+                                var _time = new Date(monthItem.GainTime); //时间段
+                                var value = this.dateFtt("MM月dd日", _time);
+                                return value;
+                            }
+                        });
+                        options.columns[0].push({
+                            //污染物名称
+                            title: "pollItem.PollutantName", //标题  可不加
+                            colspan: 2,
+                            valign: "middle",
+                            align: "center"
+                        });
+
+              
+                        options.columns[1] = [];
+                        options.columns[1].push({
+                            //污染物实测均值数据
+                            field: 'P"+pollItem.PollutantNo+"AvgValue',
+                            title: "实测均值浓度（毫克/升）",
+                            formatter: function(value, row, index) {
+                                return value==null?'-':monthItem["P" + pollItem.PollutantNo + "AvgValue"]
+                            }
+                        });
+                        options.columns[1].push({
+                            //污染物排放量
+                            field: 'P"+pollItem.PollutantNo+"CountValue',
+                            title: "排放量",
+                            formatter: function(value, row, index) {
+                                return value==null?'-':monthItem["P" + pollItem.PollutantNo + "CountValue"]
+                            }
+                        });
+                        console.log(options)
+                    });
+                });
+            },
+            /* formatTable() {
+              tabledata = {
+                name: [],
+                test: [],
+                avgValue: [],
+                emissions: []
+              };
+              this.pollutantdata.map(pollItem => {
+                this.monthdata.map(monthItem => {
+                  var _time = new Date(monthItem.GainTime);
+                  tabledata.name.push(pollItem.PollutantName);
+                  tabledata.test.push(this.dateFtt("MM月dd日", _time));
+                  tabledata.avgValue.push(
+                    monthItem["P" + pollItem.PollutantNo + "AvgValue"]
+                  );
+                  tabledata.emissions.push(
+                    monthItem["P" + pollItem.PollutantNo + "CountValue"]
+                  );
+                });
+              });
+
+              console.log(tabledata.test);
+              return tabledata;
+            },  */
+
+            getPollutant() {
+                axios
+                    .get("json/Pollutant.json")
+                    .then(response => {
+                    //console.log(JSON.stringify(response.data.Data));
+                this.pollutantdata = response.data.Data;
+                this.formatTable();
+            })
+            .catch(error => {
+                    return [];
+            });
+            },
+            getMonthData() {
+                axios
+                    .get("json/MonthData.json")
+                    .then(response => {
+                    //console.log(JSON.stringify(response.data.Data));
+                this.monthdata = response.data.Data;
+                this.formatTable();
+            })
+            .catch(error => {
+                    return [];
+            });
+            },
+            drawTable() {
+                $("#tableTest1").bootstrapTable({
+                    columns:[
+                        [
+                            {
+                                title: "污染物月报表",
+                                colspan: 11, //标题  可不加
+                                align: "left"
+                            }
+                        ],
+                        [
+                            {
+                                title: "#",
+                                rowspan: 2, //标题  可不加
+                                formatter: function(value, row, index) {
+                                    return index + 1;
+                                }
+                            },
+                            {
+                                field: "",
+                                title: "时间段",
+                                valign: "middle",
+                                align: "center",
+                                rowspan: 2
+                            },
+                            {
+                                title: "化学需氧量",
+                                valign: "middle",
+                                align: "center",
+                                colspan: 2
+                            },
+                            { title: "PH", valign: "middle", align: "center" },
+                            { title: "氨氮", valign: "middle", align: "center", colspan: 2 },
+                            { title: "总磷", valign: "middle", align: "center", colspan: 2 },
+                            { title: "流量", valign: "middle", align: "center", colspan: 2 }
+                        ],
+                        [
+                            { field: "", title: "实测均值浓度（毫克/升）" },
+                            {
+                                field: "",
+                                title: "排放量"
+                            },
+                            { field: "", title: "实测均值浓度（毫克/升）" },
+                            { field: "", title: "实测均值浓度（毫克/升）" },
+                            { field: "", title: "排放量" },
+                            { field: "", title: "实测均值浓度（毫克/升）" },
+                            { field: "", title: "排放量" },
+
+                            { field: "", title: "实测均值浓度（毫克/升）" },
+                            { field: "", title: "排放量" }
+                        ]
+                    ]
+                });
+            },
+
+            dateFtt(fmt, date) {
+                // 格式化时间
+                var o = {
+                    "M+": date.getMonth() + 1, //月份
+                    "d+": date.getDate(), //日
+                    "h+": date.getHours(), //小时
+                    "m+": date.getMinutes(), //分
+                    "s+": date.getSeconds(), //秒
+                    "q+": Math.floor((date.getMonth() + 3) / 3), //季度
+                    S: date.getMilliseconds() //毫秒
+                };
+                if (/(y+)/.test(fmt))
+                    fmt = fmt.replace(
+                        RegExp.$1,
+                        (date.getFullYear() + "").substr(4 - RegExp.$1.length)
+                    );
+                for (var k in o)
+                    if (new RegExp("(" + k + ")").test(fmt))
+                        fmt = fmt.replace(
+                            RegExp.$1,
+                            RegExp.$1.length == 1
+                                ? o[k]
+                                : ("00" + o[k]).substr(("" + o[k]).length)
+                        );
+                return fmt;
+            }
+        }
+    })
+</script>
+
+</body>
+
+
+</html>
