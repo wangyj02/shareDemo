@@ -46,15 +46,67 @@
             };
         },
         mounted() {
-            this.getMonthData();
+            // 方法执行的第一步格式化table header columns
+            // 参考示例中的格式
             this.getPollutant();
-            this.drawTable();
+
+
+
+            this.getMonthData();
+            // this.drawTable();
         },
         methods: {
-            formatTable() {
+            formatTableColumns() {
+                var self = this;
+                var options = [];
+                options.columns = [[], [], []];
+                // 设置第一行 行头
+                options.columns[0].push({
+                    title: "污染物月报表",
+                    colspan: 11,
+                    align: "center"
+                });
+                // 动态读取 设置第二行及第三行行头
+                // 先固定两列，序号和时间
+                options.columns[1].push({
+                    //第一列自定义index
+                    title: "#", //标题  可不加
+                    rowspan: 2,
+                    formatter: function(value, row, index) {
+                        return index + 1;
+                    }
+                });
+                options.columns[1].push({
+                    //第二列时间段
+                    field: "GainTime",
+                    title: "时间段", //标题  可不加
+                    rowspan: 2,
+                    formatter: function(value, row, index) {
+                        var _time = new Date(value); //时间段
+                        var value = self.dateFtt("MM月dd日", _time);
+                        return value;
+                    }
+                });
+                // 动态表头
+                this.pollutantdata.map(pollItem => {
+                    var col_type = { title: pollItem.PollutantName , valign: "middle", align: "center", colspan: 2 }
+                    var col_type_avg = { field: "P"+pollItem.PollutantNo+"AvgValue", title: "实测均值浓度（毫克/升）" }; // 排放量
+                    var col_type_out = { field: "P"+pollItem.PollutantNo+"CountValue" , title: "排放量" }; // 排放量
+                    options.columns[1].push(col_type)
+                    options.columns[2].push(col_type_avg)
+                    options.columns[2].push(col_type_out)
+                })
+                console.log(options);
+                $("#tableTest1").bootstrapTable(options)
+            },
+            formatTableData() {
+                console.log(this.monthdata);
+                $("#tableTest1").bootstrapTable("load", this.monthdata)
+            },
+            /*formatTable() {
                 this.pollutantdata.map(pollItem => {
                     this.monthdata.map(monthItem => {
-                        var options = [];
+                        var options = {};
                         options.columns = [[], []];
                         options.columns[0].push({
                             //第一列自定义index
@@ -101,10 +153,9 @@
                                 return value==null?'-':monthItem["P" + pollItem.PollutantNo + "CountValue"]
                             }
                         });
-                        console.log(options)
                     });
                 });
-            },
+            },*/
             /* formatTable() {
               tabledata = {
                 name: [],
@@ -136,7 +187,7 @@
                     .then(response => {
                     //console.log(JSON.stringify(response.data.Data));
                 this.pollutantdata = response.data.Data;
-                this.formatTable();
+                this.formatTableColumns();
             })
             .catch(error => {
                     return [];
@@ -148,7 +199,7 @@
                     .then(response => {
                     //console.log(JSON.stringify(response.data.Data));
                 this.monthdata = response.data.Data;
-                this.formatTable();
+                this.formatTableData();
             })
             .catch(error => {
                     return [];
@@ -157,7 +208,7 @@
             drawTable() {
                 $("#tableTest1").bootstrapTable({
                     columns:[
-                        [
+                        /*[
                             {
                                 title: "污染物月报表",
                                 colspan: 11, //标题  可不加
@@ -204,7 +255,7 @@
 
                             { field: "", title: "实测均值浓度（毫克/升）" },
                             { field: "", title: "排放量" }
-                        ]
+                        ]*/
                     ]
                 });
             },
