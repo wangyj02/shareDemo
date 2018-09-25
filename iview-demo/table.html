@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- import Vue.js -->
+    <script src="//vuejs.org/js/vue.min.js"></script>
+    <!-- import stylesheet -->
+    <link rel="stylesheet" href="//unpkg.com/iview/dist/styles/iview.css">
+    <!-- import iView -->
+    <script src="//unpkg.com/iview/dist/iview.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <title>Title</title>
+    <style>
+        #app{
+            padding: 100px;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <i-table :data="tableData2" :columns="tableColumns2" ></i-table>
+</div>
+<script>
+    var app = new Vue({
+        el: '#app',
+        data()
+        {
+            return {
+                tableData2: [],
+                tableColumns2: [],
+
+
+            }
+        }
+        ,
+        mounted()
+        {
+            this.getPollutant();
+            this.getMonthData();
+        }
+        ,
+        methods: {
+            formatTableColumns()
+            {
+                var self = this;
+                var options = [];
+                options.columns = [[],[],[]];
+                // 第一行行头
+                options.columns[0].push({
+                    title: "污染物月报表",
+                    colSpan: 11,
+                    align: "left"
+                });
+
+                // 先固定两列，索引和时间
+                options.columns[1].push({
+                    //第一列自定义index
+                    title: "#", //标题  可不加
+                    rowSpan: 2,
+                    type: 'index'
+                });
+                options.columns[1].push({
+                    //第二列时间段
+                    key: "GainTime",
+                    title: "时间段", //标题
+                    rowSpan: 2,
+                    render: (h, params) => {
+                    var _time = new Date(params); //时间段
+                    return h("div", self.dateFtt("MM月dd日", _time)
+                   );
+                  }
+                });
+                // 动态读取
+                this.pollutantdata.map(pollItem => {
+                    var col_type = {
+                        title: pollItem.PollutantName,
+                        valign: "middle",
+                        align: "center",
+                        colSpan: 2
+                    };
+
+                var col_type_avg = {  // 实测均值
+                    key: "P" + pollItem.PollutantNo + "AvgValue",
+                    title: "实测均值浓度（毫克/升）",
+                    valign: "middle",
+                    align: "center"
+                };
+                var col_type_cout = { // 排放量
+                    key: "P" + pollItem.PollutantNo + "CountValue",
+                    title: "排放量",
+                    valign: "middle",
+                    align: "center"
+                };
+                options.columns[1].push(col_type);
+                options.columns[2].push(col_type_avg);
+                options.columns[2].push(col_type_cout);
+                //设置PH的显示
+                if (pollItem.PollutantName == "PH") {
+                    col_type.colspan = 1;
+                    options.columns[2].pop(col_type_cout);
+                }
+                if (pollItem.PollutantName == "流量") {
+                    col_type_avg.title = "实测均值浓度（升/秒）"
+                }
+            });
+                let data =options.columns;
+                console.log(options);
+                return data
+            },
+
+            formatTableData()
+            {
+                //console.log(this.monthdata);
+                this.tableColumns2 = this.formatTableColumns();
+            },
+
+            getPollutant()
+            {
+                axios.get("json/Pollutant.json")
+                    .then(response => {
+                    this.pollutantdata = response.data.Data;
+                // console.log(this.pollutantdata);
+                this.formatTableColumns();
+            })
+             .catch(error => {
+                    return [];
+            });
+            },
+            getMonthData()
+            {
+                axios.get("json/MonthData.json")
+                    .then(response => {
+                    this.monthdata = response.data.Data;
+
+                this.formatTableData();
+            })
+            .catch(error => {
+                    return [];
+            });
+            },
+            dateFtt(fmt, date)
+            {
+                // 格式化时间
+                var o = {
+                    "M+": date.getMonth() + 1, //月份
+                    "d+": date.getDate(), //日
+                    "h+": date.getHours(), //小时
+                    "m+": date.getMinutes(), //分
+                    "s+": date.getSeconds(), //秒
+                    "q+": Math.floor((date.getMonth() + 3) / 3), //季度
+                    S: date.getMilliseconds() //毫秒
+                };
+                if (/(y+)/.test(fmt))
+                    fmt = fmt.replace(
+                        RegExp.$1,
+                        (date.getFullYear() + "").substr(4 - RegExp.$1.length)
+                    );
+                for (var k in o)
+                    if (new RegExp("(" + k + ")").test(fmt))
+                        fmt = fmt.replace(
+                            RegExp.$1,
+                            RegExp.$1.length == 1
+                                ? o[k]
+                                : ("00" + o[k]).substr(("" + o[k]).length)
+                        );
+                return fmt;
+            }
+        }
+    })
+</script>
+</body>
+</html>
